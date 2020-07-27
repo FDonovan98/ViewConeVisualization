@@ -6,6 +6,7 @@
         _MainTex ("Albedo (RGB)", 2D) = "white" {}
         _Glossiness ("Smoothness", Range(0,1)) = 0.5
         _Metallic ("Metallic", Range(0,1)) = 0.0
+        _StencilReference ("Stencil Refrence", Int) = 1
     }
     SubShader
     {
@@ -14,7 +15,7 @@
 
         Stencil
         {
-            Ref 1
+            Ref [_StencilReference]
             Comp equal
         }
 

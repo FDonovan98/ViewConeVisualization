@@ -28,6 +28,10 @@ namespace UnityMiscUtils
         }
     }
 
+    /// <summary>
+    /// Returns a normalized vector, rotated around an axis.
+    /// </summary>
+
     public static class VectorRotation
     {
         public static Vector3 RotateVector(float angleOfRotation, float[] axisOfRotation, float[] pointToRotate)
