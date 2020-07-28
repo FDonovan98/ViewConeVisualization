@@ -702,7 +702,8 @@ MonoBehaviour:
   meshFilter: {fileID: 0}
   viewAngle: 60
   viewRange: 30
-  rayCount: 10
+  rayCount: 50
+  distanceThreshold: 2
   edgeIterations: 6
   edgeIndent: 0.1
   text: {fileID: 464107438}

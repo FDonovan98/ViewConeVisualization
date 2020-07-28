@@ -13,6 +13,7 @@ public class ViewCone : MonoBehaviour
     public float viewRange = 100.0f;
 
     public int rayCount = 10;
+    public float distanceThreshold = 5.0f;
 
     public int edgeIterations = 6;
     public float edgeIndent = 5.0f;
@@ -42,13 +43,13 @@ public class ViewCone : MonoBehaviour
 
     void GetCollisionPoints(ref List<HitInfo> hitInfo)
     {
-        for (int i = 0; i < rayCount; i++)
+        for (int i = 0; i < rayCount + 1; i++)
         {
             float rayAngle = -viewAngle / 2 + (viewAngle / rayCount) * i;
             rayAngle *= Mathf.Deg2Rad;
 
             Vector3 rayDirection = RotateVector(rayAngle, Vector3.up, transform.forward);
-            
+            Debug.DrawRay(transform.position, rayDirection * viewRange);
             Ray ray = new Ray(transform.position, rayDirection.normalized);
 
             RaycastHit hit;
@@ -57,9 +58,21 @@ public class ViewCone : MonoBehaviour
 
             HitInfo newHit = SetHitInfo(didHit, rayAngle, hit, ray);
 
-            if (i > 0 && (hitInfo[hitInfo.Count - 1].didHit ^ didHit))
+            if (i > 0)
             {
-                AddCorner(ref hitInfo, hitInfo[hitInfo.Count - 1], new HitInfo(didHit, rayAngle, newHit.hitPosition));
+                if (hitInfo[hitInfo.Count - 1].didHit ^ didHit)
+                {
+                    AddCorner(ref hitInfo, hitInfo[hitInfo.Count - 1], new HitInfo(didHit, rayAngle, newHit.hitPosition), false);
+                }
+                else if (Vector3.Distance(hitInfo[hitInfo.Count - 1].hitPosition, newHit.hitPosition) > distanceThreshold)
+                {
+                    AddCorner(ref hitInfo, hitInfo[hitInfo.Count - 1], new HitInfo(didHit, rayAngle, newHit.hitPosition), true);
+                }
+
+                if (hitInfo[hitInfo.Count - 1].hitNormal != newHit.hitNormal)
+                {
+                    AddCorner(ref hitInfo, hitInfo[hitInfo.Count - 1], new HitInfo(didHit, rayAngle, newHit.hitPosition), false, true);
+                }
             }
 
             hitInfo.Add(newHit);
@@ -78,11 +91,12 @@ public class ViewCone : MonoBehaviour
         }
     }
 
-    void AddCorner(ref List<HitInfo> hitInfo, HitInfo minBound, HitInfo maxBound)
+    void AddCorner(ref List<HitInfo> hitInfo, HitInfo minBound, HitInfo maxBound, bool triggeredByDistance = false, bool recursivelyCalled = false)
     {
         for (int i = 0; i < edgeIterations; i++)
         {
             float angle = (minBound.angle + maxBound.angle) / 2;
+
             Vector3 newDirection = RotateVector(angle, Vector3.up, transform.forward);
 
             Ray ray = new Ray(transform.position, newDirection.normalized);
@@ -91,13 +105,41 @@ public class ViewCone : MonoBehaviour
             bool didHit = Physics.Raycast(ray, out hit, viewRange);
             raysCastThisFrame++;
 
-            if (minBound.didHit == didHit)
+            bool setCondition = true;
+            HitInfo tempHitInfo = SetHitInfo(didHit, angle, hit, ray);
+
+            if (triggeredByDistance)
             {
-                minBound = SetHitInfo(didHit, angle, hit, ray);
+                setCondition = Vector3.Distance(minBound.hitPosition, tempHitInfo.hitPosition) < Vector3.Distance(maxBound.hitPosition, tempHitInfo.hitPosition);
             }
             else
             {
-                maxBound = SetHitInfo(didHit, angle, hit, ray);
+                setCondition = minBound.didHit == didHit;    
+            }
+            
+            if (!recursivelyCalled)
+            {
+                if (minBound.didHit && didHit)
+                {
+                    if (minBound.hitNormal != tempHitInfo.hitNormal)
+                    {
+                        if (hitInfo[hitInfo.Count-1] != minBound)
+                        {
+                            hitInfo.Add(minBound);
+                        }
+
+                        AddCorner(ref hitInfo, minBound, tempHitInfo, false, true);
+                    }
+                }
+            }
+                
+            if (setCondition)
+            {
+                minBound = tempHitInfo;
+            }
+            else
+            {
+                maxBound = tempHitInfo;
             }
         }
 
@@ -115,7 +157,8 @@ public class ViewCone : MonoBehaviour
 
         for (int i = 0; i < hitInfo.Count; i++)
         {
-            vertices[i + 1] = transform.InverseTransformPoint(hitInfo[i].hitPosition - hitInfo[i].hitNormal * edgeIndent);
+            Vector3 edgeOffset = hitInfo[i].hitNormal * edgeIndent;
+            vertices[i + 1] = transform.InverseTransformPoint(hitInfo[i].hitPosition - edgeOffset);
 
             if (i >= 1)
             {
