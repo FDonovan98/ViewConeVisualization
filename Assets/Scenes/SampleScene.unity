@@ -560,7 +560,7 @@ MonoBehaviour:
   viewRange: 30
   rayCount: 10
   edgeIterations: 6
-  edgeIndent: 5
+  edgeIndent: 0.1
 --- !u!33 &765692898
 MeshFilter:
   m_ObjectHideFlags: 0
