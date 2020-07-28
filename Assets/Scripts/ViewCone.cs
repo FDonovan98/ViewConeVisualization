@@ -71,7 +71,6 @@ public class ViewCone : MonoBehaviour
 
     void AddCorner(ref List<HitInfo> hitInfo, HitInfo minBound, HitInfo maxBound)
     {
-        HitInfo hitInfoToAdd = null;
         for (int i = 0; i < edgeIterations; i++)
         {
             float angle = (minBound.angle + maxBound.angle) / 2;
@@ -81,11 +80,6 @@ public class ViewCone : MonoBehaviour
 
             RaycastHit hit;
             bool didHit = Physics.Raycast(ray, out hit, viewRange);
-
-            if (didHit)
-            {
-                hitInfoToAdd = SetHitInfo(didHit, angle, hit, ray);
-            }
 
             if (minBound.didHit == didHit)
             {
@@ -97,11 +91,8 @@ public class ViewCone : MonoBehaviour
             }
         }
 
-        if (hitInfoToAdd != null)
-        {
-            hitInfo.Add(minBound);
-            hitInfo.Add(maxBound);
-        }
+        hitInfo.Add(minBound);
+        hitInfo.Add(maxBound);
     }
 
     void CreateViewMesh(List<HitInfo> hitInfo)
