@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 
 using static UnityMiscUtils.VectorRotation;
 
@@ -16,6 +17,9 @@ public class ViewCone : MonoBehaviour
     public int edgeIterations = 6;
     public float edgeIndent = 5.0f;
 
+    int raysCastThisFrame;
+    public Text text;
+
     private void Start()
     {
         if (meshFilter == null)
@@ -26,10 +30,14 @@ public class ViewCone : MonoBehaviour
 
     private void Update()
     {
+        raysCastThisFrame = 0;
+
         List<HitInfo> hitInfo = new List<HitInfo>();
         GetCollisionPoints(ref hitInfo);
 
         CreateViewMesh(hitInfo);
+
+        text.text = raysCastThisFrame.ToString();
     }
 
     void GetCollisionPoints(ref List<HitInfo> hitInfo)
@@ -45,6 +53,7 @@ public class ViewCone : MonoBehaviour
 
             RaycastHit hit;
             bool didHit = Physics.Raycast(ray, out hit, viewRange);
+            raysCastThisFrame++;
 
             HitInfo newHit = SetHitInfo(didHit, rayAngle, hit, ray);
 
@@ -80,6 +89,7 @@ public class ViewCone : MonoBehaviour
 
             RaycastHit hit;
             bool didHit = Physics.Raycast(ray, out hit, viewRange);
+            raysCastThisFrame++;
 
             if (minBound.didHit == didHit)
             {
