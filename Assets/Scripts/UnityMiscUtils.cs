@@ -29,7 +29,7 @@ namespace UnityMiscUtils
     }
 
     /// <summary>
-    /// Returns a normalized vector, rotated around an axis.
+    /// Returns a vector, rotated around an axis.
     /// </summary>
 
     public static class VectorRotation

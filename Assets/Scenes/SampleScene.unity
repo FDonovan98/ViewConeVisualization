@@ -557,8 +557,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   meshFilter: {fileID: 0}
   viewAngle: 60
-  viewRange: 100
+  viewRange: 30
   rayCount: 10
+  edgeIterations: 6
 --- !u!33 &765692898
 MeshFilter:
   m_ObjectHideFlags: 0

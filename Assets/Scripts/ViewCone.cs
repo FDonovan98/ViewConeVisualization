@@ -12,6 +12,8 @@ public class ViewCone : MonoBehaviour
     public float viewRange = 100.0f;
     public int rayCount = 10;
 
+    public int edgeIterations = 6;
+
     private void Start()
     {
         if (meshFilter == null)
@@ -30,31 +32,52 @@ public class ViewCone : MonoBehaviour
 
     void GetCollisionPoints(ref List<HitInfo> hitInfo)
     {
-
         for (int i = 0; i < rayCount + 1; i++)
         {
             float rayAngle = -viewAngle / 2 + (viewAngle / rayCount) * i;
             rayAngle *= Mathf.Deg2Rad;
 
             Vector3 rayDirection = RotateVector(rayAngle, Vector3.up, transform.forward);
+            
+            Ray ray = new Ray(transform.position, rayDirection.normalized);
+
+            Debug.DrawRay(transform.position, rayDirection * viewRange, Color.red, Time.deltaTime);
 
             RaycastHit hit;
-            bool didHit = Physics.Raycast(transform.position, rayDirection, out hit, viewRange);
+            bool didHit = Physics.Raycast(ray, out hit, viewRange);
 
             Vector3 hitPosition;
             if (didHit)
             {
                 hitPosition = hit.point;
+                Debug.DrawRay(transform.position, hitPosition - transform.position, Color.green, Time.deltaTime);
             }
             else
             {
-                hitPosition = rayDirection * viewRange;
+                hitPosition = ray.GetPoint(viewRange);
+                Debug.DrawRay(transform.position, hitPosition - transform.position, Color.yellow, Time.deltaTime);
             }
 
-            hitInfo.Add(new HitInfo(didHit, hitPosition, rayAngle));
+            // if (i > 0 && (hitInfo[hitInfo.Count - 1].didHit ^ didHit))
+            // {
+            //     hitInfo.Add(FindEdge(new HitInfo(didHit, hitPosition), hitInfo[hitInfo.Count - 1]));
+            // }
 
-            Debug.DrawRay(transform.position, rayDirection * hit.distance);
+            hitInfo.Add(new HitInfo(didHit, hitPosition));
         }
+    }
+
+    HitInfo FindEdge(HitInfo minBound, HitInfo maxBound)
+    {
+        HitInfo returnedInfo = new HitInfo();
+        for (int i = 0; i < edgeIterations; i++)
+        {
+            Vector3 newDirection = Vector3.Lerp(minBound.hitPosition, maxBound.hitPosition, 0.5f);
+
+            
+        }
+
+        return returnedInfo;
     }
 
     void CreateViewMesh(List<HitInfo> hitInfo)
@@ -90,12 +113,10 @@ public class ViewCone : MonoBehaviour
     {
         public bool didHit;
         public Vector3 hitPosition;
-        public float angle;
 
-        public HitInfo(bool _didHit, Vector3 _hitPosition, float _angle)
+        public HitInfo(bool _didHit, Vector3 _hitPosition)
         {
             didHit = _didHit;
-            angle = _angle;
             hitPosition = _hitPosition;
         }
     }

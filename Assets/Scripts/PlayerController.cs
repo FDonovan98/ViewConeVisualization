@@ -44,11 +44,14 @@ public class PlayerController : MonoBehaviour
             moveDirection.x += -1.0f;
         }
 
-        transform.Translate(moveDirection.normalized * Time.deltaTime * moveSpeed, Space.Self);
+        transform.Translate(moveDirection.normalized * Time.deltaTime * moveSpeed, Space.World);
 
-        Vector3 viewTarget = controllingCamera.ScreenToWorldPoint(Input.mousePosition);
-        viewTarget.y = transform.position.y;
+        if (Input.GetKey(KeyCode.Mouse1))
+        {
+            Vector3 viewTarget = controllingCamera.ScreenToWorldPoint(Input.mousePosition);
+            viewTarget.y = transform.position.y;
 
-        transform.LookAt(viewTarget);
+            transform.LookAt(viewTarget);
+        }
     }
 }
