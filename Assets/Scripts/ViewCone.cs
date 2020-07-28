@@ -10,9 +10,11 @@ public class ViewCone : MonoBehaviour
     [Range(0.0f, 360.0f)]
     public float viewAngle = 60.0f;
     public float viewRange = 100.0f;
+
     public int rayCount = 10;
 
     public int edgeIterations = 6;
+    public float edgeIndent = 5.0f;
 
     private void Start()
     {
@@ -32,7 +34,7 @@ public class ViewCone : MonoBehaviour
 
     void GetCollisionPoints(ref List<HitInfo> hitInfo)
     {
-        for (int i = 0; i < rayCount + 1; i++)
+        for (int i = 0; i < rayCount; i++)
         {
             float rayAngle = -viewAngle / 2 + (viewAngle / rayCount) * i;
             rayAngle *= Mathf.Deg2Rad;
@@ -49,20 +51,7 @@ public class ViewCone : MonoBehaviour
             if (i > 0 && (hitInfo[hitInfo.Count - 1].didHit ^ didHit))
             {
                 AddCorner(ref hitInfo, hitInfo[hitInfo.Count - 1], new HitInfo(didHit, rayAngle, newHit.hitPosition));
-                
-                Debug.DrawRay(transform.position, newHit.hitPosition - transform.position, Color.red);
-
-                Debug.DrawRay(transform.position, hitInfo[hitInfo.Count - 1].hitPosition - transform.position, Color.green);
             }
-
-            // if (didHit)
-            // {
-            //     Debug.DrawRay(transform.position, newHit.hitPosition - transform.position, Color.red);
-            // }
-            // else
-            // {
-            //     Debug.DrawRay(transform.position, newHit.hitPosition - transform.position, Color.green);
-            // }
 
             hitInfo.Add(newHit);
         }
@@ -72,7 +61,7 @@ public class ViewCone : MonoBehaviour
     {
         if (rayDidHit)
         {
-           return new HitInfo(rayDidHit, angle, rayHit.point);
+           return new HitInfo(rayDidHit, angle, rayHit.point, rayHit.normal);
         }
         else
         {
@@ -110,9 +99,6 @@ public class ViewCone : MonoBehaviour
 
         if (hitInfoToAdd != null)
         {
-            Debug.DrawRay(transform.position, minBound.hitPosition - transform.position, Color.yellow);
-            Debug.DrawRay(transform.position, maxBound.hitPosition - transform.position, Color.blue);
-
             hitInfo.Add(minBound);
             hitInfo.Add(maxBound);
         }
@@ -128,7 +114,7 @@ public class ViewCone : MonoBehaviour
 
         for (int i = 0; i < hitInfo.Count; i++)
         {
-            vertices[i + 1] = transform.InverseTransformPoint(hitInfo[i].hitPosition);
+            vertices[i + 1] = transform.InverseTransformPoint(hitInfo[i].hitPosition - hitInfo[i].hitNormal * edgeIndent);
 
             if (i >= 1)
             {
@@ -152,12 +138,14 @@ public class ViewCone : MonoBehaviour
         public bool didHit;
         public float angle;
         public Vector3 hitPosition;
+        public Vector3 hitNormal;
 
-        public HitInfo(bool _didHit, float _angle, Vector3 _hitPosition)
+        public HitInfo(bool _didHit, float _angle, Vector3 _hitPosition, Vector3? _hitNormal = null)
         {
             didHit = _didHit;
             angle = _angle;
             hitPosition = _hitPosition;
+            hitNormal = _hitNormal ?? Vector3.zero;
         }
     }
 }
