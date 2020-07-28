@@ -41,43 +41,81 @@ public class ViewCone : MonoBehaviour
             
             Ray ray = new Ray(transform.position, rayDirection.normalized);
 
-            Debug.DrawRay(transform.position, rayDirection * viewRange, Color.red, Time.deltaTime);
+            RaycastHit hit;
+            bool didHit = Physics.Raycast(ray, out hit, viewRange);
+
+            HitInfo newHit = SetHitInfo(didHit, rayAngle, hit, ray);
+
+            if (i > 0 && (hitInfo[hitInfo.Count - 1].didHit ^ didHit))
+            {
+                AddCorner(ref hitInfo, hitInfo[hitInfo.Count - 1], new HitInfo(didHit, rayAngle, newHit.hitPosition));
+                
+                Debug.DrawRay(transform.position, newHit.hitPosition - transform.position, Color.red);
+
+                Debug.DrawRay(transform.position, hitInfo[hitInfo.Count - 1].hitPosition - transform.position, Color.green);
+            }
+
+            // if (didHit)
+            // {
+            //     Debug.DrawRay(transform.position, newHit.hitPosition - transform.position, Color.red);
+            // }
+            // else
+            // {
+            //     Debug.DrawRay(transform.position, newHit.hitPosition - transform.position, Color.green);
+            // }
+
+            hitInfo.Add(newHit);
+        }
+    }
+
+    HitInfo SetHitInfo(bool rayDidHit, float angle, RaycastHit rayHit, Ray ray)
+    {
+        if (rayDidHit)
+        {
+           return new HitInfo(rayDidHit, angle, rayHit.point);
+        }
+        else
+        {
+            return new HitInfo(rayDidHit, angle, ray.GetPoint(viewRange));
+        }
+    }
+
+    void AddCorner(ref List<HitInfo> hitInfo, HitInfo minBound, HitInfo maxBound)
+    {
+        HitInfo hitInfoToAdd = null;
+        for (int i = 0; i < edgeIterations; i++)
+        {
+            float angle = (minBound.angle + maxBound.angle) / 2;
+            Vector3 newDirection = RotateVector(angle, Vector3.up, transform.forward);
+
+            Ray ray = new Ray(transform.position, newDirection.normalized);
 
             RaycastHit hit;
             bool didHit = Physics.Raycast(ray, out hit, viewRange);
 
-            Vector3 hitPosition;
             if (didHit)
             {
-                hitPosition = hit.point;
-                Debug.DrawRay(transform.position, hitPosition - transform.position, Color.green, Time.deltaTime);
+                hitInfoToAdd = SetHitInfo(didHit, angle, hit, ray);
+            }
+
+            if (minBound.didHit == didHit)
+            {
+                minBound = SetHitInfo(didHit, angle, hit, ray);
             }
             else
             {
-                hitPosition = ray.GetPoint(viewRange);
-                Debug.DrawRay(transform.position, hitPosition - transform.position, Color.yellow, Time.deltaTime);
+                maxBound = SetHitInfo(didHit, angle, hit, ray);
             }
-
-            // if (i > 0 && (hitInfo[hitInfo.Count - 1].didHit ^ didHit))
-            // {
-            //     hitInfo.Add(FindEdge(new HitInfo(didHit, hitPosition), hitInfo[hitInfo.Count - 1]));
-            // }
-
-            hitInfo.Add(new HitInfo(didHit, hitPosition));
         }
-    }
 
-    HitInfo FindEdge(HitInfo minBound, HitInfo maxBound)
-    {
-        HitInfo returnedInfo = new HitInfo();
-        for (int i = 0; i < edgeIterations; i++)
+        if (hitInfoToAdd != null)
         {
-            Vector3 newDirection = Vector3.Lerp(minBound.hitPosition, maxBound.hitPosition, 0.5f);
+            Debug.DrawRay(transform.position, minBound.hitPosition - transform.position, Color.yellow);
+            Debug.DrawRay(transform.position, maxBound.hitPosition - transform.position, Color.blue);
 
-            
+            hitInfo.Add(minBound);
+            hitInfo.Add(maxBound);
         }
-
-        return returnedInfo;
     }
 
     void CreateViewMesh(List<HitInfo> hitInfo)
@@ -109,14 +147,16 @@ public class ViewCone : MonoBehaviour
         viewMesh.triangles = triangles;
     }
 
-    struct HitInfo
+    class HitInfo
     {
         public bool didHit;
+        public float angle;
         public Vector3 hitPosition;
 
-        public HitInfo(bool _didHit, Vector3 _hitPosition)
+        public HitInfo(bool _didHit, float _angle, Vector3 _hitPosition)
         {
             didHit = _didHit;
+            angle = _angle;
             hitPosition = _hitPosition;
         }
     }
