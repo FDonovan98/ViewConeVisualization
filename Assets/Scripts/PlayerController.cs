@@ -1,8 +1,14 @@
-﻿using UnityEngine;
+﻿// Title: PlayerController.cs
+// Author: Harry Donovan
+// Collaborators:
+// License: GNU General Public License v3.0
+// Date Last Edited: 29/07/20
+// Last Edited By: Harry Donovan
+// References: 
+// File Source: https://github.com/HDonovan96/ViewConeVisualization
+// Description: A very simple 2D character controller. The character faces the mouse and moves with WASD relative to world axis.
 
-using System.Collections.Generic;
-
-using static UnityMiscUtils.VectorRotation;
+using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
@@ -12,6 +18,7 @@ public class PlayerController : MonoBehaviour
 
     void Start()
     {
+        // Fetches the scene main camera if it hasn't been set in inspector.
         if (controllingCamera == null)
         {
             controllingCamera = Camera.main;
@@ -46,12 +53,9 @@ public class PlayerController : MonoBehaviour
 
         transform.Translate(moveDirection.normalized * Time.deltaTime * moveSpeed, Space.World);
 
-        if (Input.GetKey(KeyCode.Mouse1))
-        {
-            Vector3 viewTarget = controllingCamera.ScreenToWorldPoint(Input.mousePosition);
-            viewTarget.y = transform.position.y;
+        Vector3 viewTarget = controllingCamera.ScreenToWorldPoint(Input.mousePosition);
+        viewTarget.y = transform.position.y;
 
-            transform.LookAt(viewTarget);
-        }
+        transform.LookAt(viewTarget);
     }
 }
