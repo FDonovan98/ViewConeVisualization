@@ -93,18 +93,6 @@ public class ViewCone : MonoBehaviour
         }
     }
 
-    HitInfo SetHitInfo(bool rayDidHit, float angle, RaycastHit rayHit, Ray ray)
-    {
-        if (rayDidHit)
-        {
-            return new HitInfo(rayDidHit, angle, rayHit.point, rayHit.normal);
-        }
-        else
-        {
-            return new HitInfo(rayDidHit, angle, ray.GetPoint(viewRange));
-        }
-    }
-
     void AddCorner(ref List<HitInfo> hitInfo, HitInfo minBound, HitInfo maxBound, bool triggeredByDistance = false)
     {
         for (int i = 0; i < edgeIterations; i++)
@@ -156,6 +144,8 @@ public class ViewCone : MonoBehaviour
         for (int i = 0; i < hitInfo.Count; i++)
         {
             Vector3 edgeOffset = hitInfo[i].hitNormal * edgeIndent;
+            float normalAngle = Vector3.Angle(transform.forward, hitInfo[i].hitNormal);
+            edgeOffset *= Mathf.Cos(normalAngle * Mathf.Deg2Rad - Mathf.PI);
             vertices[i + 1] = transform.InverseTransformPoint(hitInfo[i].hitPosition - edgeOffset);
 
             if (i >= 1)
@@ -188,6 +178,19 @@ public class ViewCone : MonoBehaviour
             angle = _angle;
             hitPosition = _hitPosition;
             hitNormal = _hitNormal ?? Vector3.zero;
+        }
+
+    }
+
+    HitInfo SetHitInfo(bool rayDidHit, float angle, RaycastHit rayHit, Ray ray)
+    {
+        if (rayDidHit)
+        {
+            return new HitInfo(rayDidHit, angle, rayHit.point, rayHit.normal);
+        }
+        else
+        {
+            return new HitInfo(rayDidHit, angle, ray.GetPoint(viewRange));
         }
     }
 }
