@@ -12,7 +12,7 @@ public class ViewCone : MonoBehaviour
     public float viewAngle = 60.0f;
     public float viewRange = 100.0f;
 
-    public int rayCount = 10;
+    public int meshRes = 1;
     public float distanceThreshold = 5.0f;
 
     public int edgeIterations = 6;
@@ -31,6 +31,19 @@ public class ViewCone : MonoBehaviour
 
     private void Update()
     {
+        if (Input.GetKeyDown(KeyCode.UpArrow))
+        {
+            viewAngle += 10.0f;
+        }
+
+        if (Input.GetKeyDown(KeyCode.DownArrow))
+        {
+            viewAngle -= 10.0f;
+        }
+    }
+
+    private void LateUpdate()
+    {
         raysCastThisFrame = 0;
 
         List<HitInfo> hitInfo = new List<HitInfo>();
@@ -43,6 +56,7 @@ public class ViewCone : MonoBehaviour
 
     void GetCollisionPoints(ref List<HitInfo> hitInfo)
     {
+        int rayCount = (int)(meshRes * viewAngle);
         for (int i = 0; i < rayCount + 1; i++)
         {
             float rayAngle = -viewAngle / 2 + (viewAngle / rayCount) * i;
@@ -71,7 +85,7 @@ public class ViewCone : MonoBehaviour
 
                 if (hitInfo[hitInfo.Count - 1].hitNormal != newHit.hitNormal)
                 {
-                    AddCorner(ref hitInfo, hitInfo[hitInfo.Count - 1], new HitInfo(didHit, rayAngle, newHit.hitPosition), false, true);
+                    AddCorner(ref hitInfo, hitInfo[hitInfo.Count - 1], new HitInfo(didHit, rayAngle, newHit.hitPosition), false);
                 }
             }
 
@@ -83,7 +97,7 @@ public class ViewCone : MonoBehaviour
     {
         if (rayDidHit)
         {
-           return new HitInfo(rayDidHit, angle, rayHit.point, rayHit.normal);
+            return new HitInfo(rayDidHit, angle, rayHit.point, rayHit.normal);
         }
         else
         {
@@ -91,7 +105,7 @@ public class ViewCone : MonoBehaviour
         }
     }
 
-    void AddCorner(ref List<HitInfo> hitInfo, HitInfo minBound, HitInfo maxBound, bool triggeredByDistance = false, bool recursivelyCalled = false)
+    void AddCorner(ref List<HitInfo> hitInfo, HitInfo minBound, HitInfo maxBound, bool triggeredByDistance = false)
     {
         for (int i = 0; i < edgeIterations; i++)
         {
@@ -114,25 +128,9 @@ public class ViewCone : MonoBehaviour
             }
             else
             {
-                setCondition = minBound.didHit == didHit;    
+                setCondition = minBound.didHit == didHit;
             }
-            
-            if (!recursivelyCalled)
-            {
-                if (minBound.didHit && didHit)
-                {
-                    if (minBound.hitNormal != tempHitInfo.hitNormal)
-                    {
-                        if (hitInfo[hitInfo.Count-1] != minBound)
-                        {
-                            hitInfo.Add(minBound);
-                        }
 
-                        AddCorner(ref hitInfo, minBound, tempHitInfo, false, true);
-                    }
-                }
-            }
-                
             if (setCondition)
             {
                 minBound = tempHitInfo;
