@@ -706,7 +706,7 @@ MonoBehaviour:
   distanceThreshold: 1
   edgeIterations: 6
   edgeIndent: 0.1
-  text: {fileID: 464107438}
+  raysPerFrameText: {fileID: 0}
 --- !u!33 &765692898
 MeshFilter:
   m_ObjectHideFlags: 0

@@ -12,15 +12,16 @@ public class ViewCone : MonoBehaviour
     public float viewAngle = 60.0f;
     public float viewRange = 100.0f;
 
-    public int meshRes = 1;
+    public float meshRes = 1.0f;
     public float distanceThreshold = 5.0f;
 
     public int edgeIterations = 6;
     public float edgeIndent = 5.0f;
 
     int raysCastThisFrame;
-    public Text text;
+    public Text raysPerFrameText;
 
+    // Fetches the mesh filter if it hasn't been set in inspector.
     private void Start()
     {
         if (meshFilter == null)
@@ -33,12 +34,12 @@ public class ViewCone : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.UpArrow))
         {
-            viewAngle += 10.0f;
+            viewAngle = 360.0f;
         }
 
         if (Input.GetKeyDown(KeyCode.DownArrow))
         {
-            viewAngle -= 10.0f;
+            viewAngle = 60.0f;
         }
     }
 
@@ -51,12 +52,12 @@ public class ViewCone : MonoBehaviour
 
         CreateViewMesh(hitInfo);
 
-        text.text = raysCastThisFrame.ToString();
+        raysPerFrameText.text = raysCastThisFrame.ToString();
     }
 
     void GetCollisionPoints(ref List<HitInfo> hitInfo)
     {
-        int rayCount = (int)(meshRes * viewAngle);
+        int rayCount = Mathf.RoundToInt(meshRes * viewAngle);
         for (int i = 0; i < rayCount + 1; i++)
         {
             float rayAngle = -viewAngle / 2 + (viewAngle / rayCount) * i;
@@ -144,7 +145,7 @@ public class ViewCone : MonoBehaviour
         for (int i = 0; i < hitInfo.Count; i++)
         {
             Vector3 edgeOffset = hitInfo[i].hitNormal * edgeIndent;
-            float normalAngle = Vector3.Angle(transform.forward, hitInfo[i].hitNormal);
+            float normalAngle = Vector3.Angle(hitInfo[i].hitPosition - transform.position, hitInfo[i].hitNormal);
             edgeOffset *= Mathf.Cos(normalAngle * Mathf.Deg2Rad - Mathf.PI);
             vertices[i + 1] = transform.InverseTransformPoint(hitInfo[i].hitPosition - edgeOffset);
 
